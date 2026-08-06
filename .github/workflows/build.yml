@@ -39,7 +39,7 @@ jobs:
         # Satisfy Gradle's keystore requirements
         cp android/keystore.properties.example android/keystore.properties || touch android/keystore.properties
 
-        # Create a valid google-services.json that includes the dev flavor package name client entry
+        # Create a comprehensive google-services.json covering both base and dev package names
         mkdir -p android/app
         cat << 'EOF' > android/app/google-services.json
         {
@@ -53,7 +53,29 @@ jobs:
               "client_info": {
                 "mobilesdk_app_id": "1:123456789:android:abcdef123456",
                 "android_client_info": {
+                  "package_name": "meditofoundation.medito"
+                }
+              },
+              "oauth_client": [],
+              "api_key": [{ "current_key": "AIzaSyMockKeyForBuildingTheApp12345" }],
+              "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+            },
+            {
+              "client_info": {
+                "mobilesdk_app_id": "1:123456789:android:abcdef654321",
+                "android_client_info": {
                   "package_name": "meditofoundation.medito.dev"
+                }
+              },
+              "oauth_client": [],
+              "api_key": [{ "current_key": "AIzaSyMockKeyForBuildingTheApp12345" }],
+              "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+            },
+            {
+              "client_info": {
+                "mobilesdk_app_id": "1:123456789:android:abcdef789012",
+                "android_client_info": {
+                  "package_name": "com.yourcompany.yourapp.dev"
                 }
               },
               "oauth_client": [],
