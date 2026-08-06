@@ -2,7 +2,8 @@ name: Build Medito APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, develop ]
+  workflow_dispatch: # Allows you to trigger it manually from the Actions tab
 
 jobs:
   build:
@@ -12,20 +13,40 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up JDK 17
+    - name: Set up Java 17
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.x'
+        channel: 'stable'
+        cache: true
 
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug
+    - name: Install Dependencies
+      run: flutter pub get
+
+    - name: Generate Code (Pigeon & Build Runner)
+      run: |
+        flutter pub run pigeon --input pigeon_conf.dart
+        dart run build_runner build --delete-conflicting-outputs
+
+    - name: Setup Mock Build Configuration
+      run: |
+        # Create dummy keystore properties so Gradle succeeds
+        cp android/keystore.properties.example android/keystore.properties || touch android/keystore.properties
+        
+        # Create a dummy google-services.json required by the build system
+        echo '{"project_info": {"project_number": "123456789", "project_id": "mock-project"}, "client": [{"client_info": {"mobilesdk_app_id": "1:123:android:123"}, "oauth_client": [], "services": {"appinvite_service": {}}}]}' > android/app/google-services.json
+
+    - name: Build Android APK (Mock Flavor/Debug)
+      run: flutter build apk --flavor dev --dart-define=MOCK_MODE=true --debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: medito-debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: medito-mock-debug-apk
+        path: build/app/outputs/flutter-apk/app-dev-debug.apk
