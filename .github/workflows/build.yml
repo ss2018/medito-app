@@ -36,11 +36,34 @@ jobs:
 
     - name: Setup Mock Build Configuration & Keystore
       run: |
-        # Satisfy Gradle's keystore requirements using example or empty file
+        # Satisfy Gradle's keystore requirements
         cp android/keystore.properties.example android/keystore.properties || touch android/keystore.properties
-        
-        # Create a dummy google-services.json required by the build system
-        echo '{"project_info": {"project_number": "123456789", "project_id": "mock-project"}, "client": [{"client_info": {"mobilesdk_app_id": "1:123:android:123"}, "oauth_client": [], "services": {"appinvite_service": {}}}]}' > android/app/google-services.json
+
+        # Create a valid google-services.json that includes the dev flavor package name client entry
+        mkdir -p android/app
+        cat << 'EOF' > android/app/google-services.json
+        {
+          "project_info": {
+            "project_number": "123456789",
+            "project_id": "medito-mock",
+            "storage_bucket": "medito-mock.appspot.com"
+          },
+          "client": [
+            {
+              "client_info": {
+                "mobilesdk_app_id": "1:123456789:android:abcdef123456",
+                "android_client_info": {
+                  "package_name": "meditofoundation.medito.dev"
+                }
+              },
+              "oauth_client": [],
+              "api_key": [{ "current_key": "AIzaSyMockKeyForBuildingTheApp12345" }],
+              "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+            }
+          ],
+          "configuration_version": "1"
+        }
+        EOF
 
     - name: Build Android APK (Mock Flavor/Debug)
       run: flutter build apk --flavor dev --dart-define=MOCK_MODE=true --debug
